@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:path_parsing/path_parsing.dart';
 import 'package:xml/xml.dart' as xml;
@@ -16,23 +14,27 @@ class SvgParser {
 
   //TODO do proper parsing and support hex-alpa and RGBA
   Color parseColor(String? cStr) {
-    if (cStr == null || cStr.isEmpty) throw UnsupportedError("Empty color field found.");
+    if (cStr == null || cStr.isEmpty) {
+      throw UnsupportedError('Empty color field found.');
+    }
     if (cStr[0] == '#') {
-      return new Color(int.parse(cStr.substring(1), radix: 16))
-          .withOpacity(1.0); // Hex to int: from https://stackoverflow.com/a/51290420/9452450
+      return Color(int.parse(cStr.substring(1), radix: 16)).withOpacity(
+          1.0); // Hex to int: from https://stackoverflow.com/a/51290420/9452450
     } else if (cStr == 'none') {
       return Colors.transparent;
     } else {
-      throw UnsupportedError("Only hex color format currently supported. String:  $cStr");
+      throw UnsupportedError(
+          'Only hex color format currently supported. String:  $cStr');
     }
   }
 
   //Extract segments of each path and create [PathSegment] representation
-  void addPathSegments(Path path, int index, double? strokeWidth, Color? color) {
-    int firstPathSegmentIndex = this._pathSegments.length;
-    int relativeIndex = 0;
+  void addPathSegments(
+      Path path, int index, double? strokeWidth, Color? color) {
+    var firstPathSegmentIndex = _pathSegments.length;
+    var relativeIndex = 0;
     path.computeMetrics().forEach((pp) {
-      PathSegment segment = new PathSegment()
+      var segment = PathSegment()
         ..path = pp.extractPath(0, pp.length)
         ..length = pp.length
         ..firstSegmentOfPathIndex = firstPathSegmentIndex
@@ -43,27 +45,30 @@ class SvgParser {
 
       if (strokeWidth != null) segment.strokeWidth = strokeWidth;
 
-      this._pathSegments.add(segment);
+      _pathSegments.add(segment);
       relativeIndex++;
     });
   }
 
   void loadFromString(String svgString) {
-    this._pathSegments.clear();
-    int index = 0; //number of parsed path elements
-    var doc = xml.parse(svgString);
+    _pathSegments.clear();
+    var index = 0; //number of parsed path elements
+    var doc = xml.XmlDocument.parse((svgString));
     //TODO For now only <path> tags are considered for parsing (add circle, rect, arcs etc.)
-    doc.findAllElements("path").map((node) => node.attributes).forEach((attributes) {
+    doc
+        .findAllElements('path')
+        .map((node) => node.attributes)
+        .forEach((attributes) {
       xml.XmlAttribute? dPath;
       try {
-        dPath = attributes.firstWhere((attr) => attr.name.local == "d");
+        dPath = attributes.firstWhere((attr) => attr.name.local == 'd');
       } catch (e) {
         dPath = null;
       }
 
       if (dPath != null) {
-        Path path = new Path();
-        writeSvgPathDataToPath(dPath.value, new PathModifier(path));
+        var path = Path();
+        writeSvgPathDataToPath(dPath.value, PathModifier(path));
 
         Color? color;
         double? strokeWidth;
@@ -71,30 +76,31 @@ class SvgParser {
         //Attributes - [1] css-styling
         xml.XmlAttribute? style;
         try {
-          style = attributes.firstWhere((attr) => attr.name.local == "style");
+          style = attributes.firstWhere((attr) => attr.name.local == 'style');
         } catch (e) {}
 
         if (style != null) {
           //Parse color of stroke
-          RegExp exp = new RegExp(r"stroke:([^;]+);");
+          var exp = RegExp(r'stroke:([^;]+);');
           Match? match = exp.firstMatch(style.value);
           if (match != null) {
-            String? cStr = match.group(1);
+            var cStr = match.group(1);
             color = parseColor(cStr);
           }
           //Parse stroke-width
-          exp = new RegExp(r"stroke-width:([0-9.]+)");
+          exp = RegExp(r'stroke-width:([0-9.]+)');
           match = exp.firstMatch(style.value);
           if (match != null) {
-            String cStr = match.group(1) ?? "";
-            strokeWidth = double.tryParse(cStr) ?? null;
+            var cStr = match.group(1) ?? '';
+            strokeWidth = double.tryParse(cStr);
           }
         }
 
         //Attributes - [2] svg-attributes
         xml.XmlAttribute? strokeElement;
         try {
-          strokeElement = attributes.firstWhere((attr) => attr.name.local == "stroke");
+          strokeElement =
+              attributes.firstWhere((attr) => attr.name.local == 'stroke');
         } catch (e) {}
 
         if (strokeElement != null) {
@@ -103,14 +109,15 @@ class SvgParser {
 
         xml.XmlAttribute? strokeWidthElement;
         try {
-          strokeWidthElement = attributes.firstWhere((attr) => attr.name.local == "stroke-width");
+          strokeWidthElement = attributes
+              .firstWhere((attr) => attr.name.local == 'stroke-width');
         } catch (e) {}
 
         if (strokeWidthElement != null) {
-          strokeWidth = double.tryParse(strokeWidthElement.value) ?? null;
+          strokeWidth = double.tryParse(strokeWidthElement.value);
         }
 
-        this._paths.add(path);
+        _paths.add(path);
         addPathSegments(path, index, strokeWidth, color);
         index++;
       }
@@ -118,33 +125,33 @@ class SvgParser {
   }
 
   void loadFromPaths(List<Path> paths) {
-    this._pathSegments.clear();
-    this._paths = paths;
+    _pathSegments.clear();
+    _paths = paths;
 
-    int index = 0;
+    var index = 0;
     paths.forEach((p) {
-      assert(p != null,
-          "Path element in `paths` must not be null."); //TODO consider allowing this and just continue if the case
-      addPathSegments(p, index, null, null); //TODO Apply `paints` already here? not so SOLID[0]
+//TODO consider allowing this and just continue if the case
+      addPathSegments(p, index, null,
+          null); //TODO Apply `paints` already here? not so SOLID[0]
       index++;
     });
   }
 
   /// Parses Svg from provided asset path
   Future<void> loadFromFile(String file) async {
-    this._pathSegments.clear();
-    String svgString = await rootBundle.loadString(file);
+    _pathSegments.clear();
+    var svgString = await rootBundle.loadString(file);
     loadFromString(svgString);
   }
 
   /// Returns extracted [PathSegment] elements of parsed Svg
   List<PathSegment> getPathSegments() {
-    return this._pathSegments;
+    return _pathSegments;
   }
 
   /// Returns extracted [Path] elements of parsed Svg
   List<Path> getPaths() {
-    return this._paths;
+    return _paths;
   }
 }
 
@@ -199,7 +206,8 @@ class PathModifier extends PathProxy {
   }
 
   @override
-  void cubicTo(double x1, double y1, double x2, double y2, double x3, double y3) {
+  void cubicTo(
+      double x1, double y1, double x2, double y2, double x3, double y3) {
     path.cubicTo(x1, y1, x2, y2, x3, y3);
   }
 

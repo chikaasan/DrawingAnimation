@@ -43,7 +43,7 @@ class SvgDrawingWithCustomController extends StatefulWidget {
 class SvgDrawingWithCustomControllerState
     extends State<SvgDrawingWithCustomController>
     with SingleTickerProviderStateMixin {
-  AnimationController _controller;
+  late AnimationController _controller;
   bool _running = false;
 
   @override

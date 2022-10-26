@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:drawing_animation/drawing_animation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -11,7 +9,8 @@ void main() => runApp(new MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.bottom]);
     return new MaterialApp(
       theme: new ThemeData(
         primarySwatch: Colors.blue,
@@ -22,8 +21,8 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key key, this.title}) : super(key: key);
-  final String title;
+  const HomePage({Key? key, this.title}) : super(key: key);
+  final String? title;
 
   @override
   HomePageState createState() => HomePageState();
@@ -394,7 +393,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               flex: 1,
               child: DropdownButton<Curve>(
                 value: assets[i][2],
-                onChanged: (Curve curve) {
+                onChanged: (Curve? curve) {
                   setState(() {
                     assets[i][2] = curve;
                   });
@@ -423,7 +422,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               flex: 1,
               child: DropdownButton<PathOrder>(
                 value: assets[i][6],
-                onChanged: (PathOrder order) {
+                onChanged: (PathOrder? order) {
                   setState(() {
                     assets[i][6] = order;
                   });
