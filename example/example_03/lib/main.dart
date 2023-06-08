@@ -260,7 +260,6 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ? Column(children: <Widget>[
               AnimatedSize(
                   curve: Curves.bounceInOut,
-                  vsync: this,
                   duration: new Duration(milliseconds: 800),
                   child: Card(
                       margin: EdgeInsets.all(20.0),
